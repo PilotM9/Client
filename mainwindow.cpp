@@ -8,11 +8,9 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    // Настройка сокета
     socket = new QTcpSocket(this);
     socket->connectToHost("localhost", 1234);
 
-    // Подключаем слоты
     setupConnections();
 }
 
@@ -23,9 +21,8 @@ MainWindow::~MainWindow()
 
 void MainWindow::setupConnections()
 {
-    // Подключаем слоты только один раз
-    connect(ui->addButton, &QPushButton::clicked, this, &MainWindow::on_addButton_clicked);
-    connect(ui->sendButton, &QPushButton::clicked, this, &MainWindow::on_sendButton_clicked);
+  //  connect(ui->addButton, &QPushButton::clicked, this, &MainWindow::on_addButton_clicked);
+   // connect(ui->sendButton, &QPushButton::clicked, this, &MainWindow::on_sendButton_clicked);
     connect(socket, &QTcpSocket::readyRead, this, &MainWindow::on_readyRead);
 }
 
@@ -61,5 +58,5 @@ void MainWindow::sendRequest(const QString &request)
 void MainWindow::on_readyRead()
 {
     QByteArray response = socket->readAll();
-    ui->textEdit->append("Server response: " + QString(response));
+    ui->textEdit->append("Server response: " + QString(response)+"\n");
 }
