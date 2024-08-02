@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>444</width>
+    <height>528</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QComboBox" name="priorityComboBox">
+    <property name="geometry">
+     <rect>
+      <x>70</x>
+      <y>70</y>
+      <width>103</width>
+      <height>32</height>
+     </rect>
+    </property>
+    <item>
+     <property name="text">
+      <string>1</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>2</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>3</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>4</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>5</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>6</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>7</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>8</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Новый элемент</string>
+     </property>
+    </item>
+   </widget>
+   <widget class="QComboBox" name="configComboBox">
+    <property name="geometry">
+     <rect>
+      <x>200</x>
+      <y>70</y>
+      <width>121</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <item>
+     <property name="text">
+      <string>одна строка
+</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>две строки</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>три строки</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>четыре строки</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>один столбец</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>два столбца</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>три столбца</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>четыре столбца</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>1х1</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>1х2</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>1х3</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>2х3</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>2х2</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>3х3</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>4х4</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>8х8</string>
+     </property>
+    </item>
+   </widget>
+   <widget class="QPushButton" name="addButton">
+    <property name="geometry">
+     <rect>
+      <x>340</x>
+      <y>70</y>
+      <width>100</width>
+      <height>32</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Add</string>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="sendButton">
+    <property name="geometry">
+     <rect>
+      <x>190</x>
+      <y>400</y>
+      <width>100</width>
+      <height>32</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Send</string>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QTextEdit" name="textEdit">
+    <property name="geometry">
+     <rect>
+      <x>100</x>
+      <y>110</y>
+      <width>291</width>
+      <height>221</height>
+     </rect>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>444</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
