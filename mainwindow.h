@@ -3,7 +3,9 @@
 
 #include <QMainWindow>
 #include <QTcpSocket>
-#include <QVector>
+#include <QLabel>
+#include <QTimer>
+#include <QRadioButton>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -21,14 +23,32 @@ private slots:
     void on_addButton_clicked();
     void on_sendButton_clicked();
     void on_readyRead();
+    void on_timeOut();
+    void on_busyRadioButton_toggled(bool checked);
+
+    void onServerConnected();
+    void onServerDisconnected();
+    void onServerError(QAbstractSocket::SocketError socketError);
+
+    void onTimeServerConnected();
+    void onTimeServerDisconnected();
+    void onTimeServerError(QAbstractSocket::SocketError socketError);
 
 private:
+    void setupConnections();
+    void connectToServers();
+    void sendStartRequest();
+    void sendRequest(const QString &request);
+    void updateConnectionStatus();
+
     Ui::MainWindow *ui;
     QTcpSocket *socket;
-    QVector<QString> requests;
-
-    void setupConnections();
-    void sendRequest(const QString &request);
+    QTcpSocket *timeSocket;
+    QLabel *statusTimeServer;
+    QLabel *statusMainServer;
+    QTimer *statusTimer;
+    QRadioButton *busyRadioButton;
+    QStringList requests; // Хранение очереди заявок
 };
 
 #endif // MAINWINDOW_H

@@ -10,12 +10,14 @@
 #define UI_MAINWINDOW_H
 
 #include <QtCore/QVariant>
+#include <QtGui/QAction>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QComboBox>
-#include <QtWidgets/QFormLayout>
+#include <QtWidgets/QLabel>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QPushButton>
+#include <QtWidgets/QRadioButton>
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QTextEdit>
 #include <QtWidgets/QWidget>
@@ -25,13 +27,18 @@ QT_BEGIN_NAMESPACE
 class Ui_MainWindow
 {
 public:
+    QAction *mainServer;
     QWidget *centralwidget;
-    QFormLayout *formLayout;
-    QComboBox *priorityComboBox;
     QPushButton *addButton;
-    QTextEdit *textEdit;
     QPushButton *sendButton;
     QComboBox *configComboBox;
+    QTextEdit *textEdit_2;
+    QTextEdit *textEdit_3;
+    QTextEdit *textEdit;
+    QComboBox *priorityComboBox;
+    QLabel *label;
+    QLabel *label_2;
+    QRadioButton *busyRadioButton;
     QMenuBar *menubar;
     QStatusBar *statusbar;
 
@@ -39,42 +46,22 @@ public:
     {
         if (MainWindow->objectName().isEmpty())
             MainWindow->setObjectName("MainWindow");
-        MainWindow->resize(444, 528);
+        MainWindow->resize(692, 675);
+        mainServer = new QAction(MainWindow);
+        mainServer->setObjectName("mainServer");
+        QIcon icon(QIcon::fromTheme(QString::fromUtf8("applications-internet")));
+        mainServer->setIcon(icon);
+        mainServer->setMenuRole(QAction::MenuRole::NoRole);
         centralwidget = new QWidget(MainWindow);
         centralwidget->setObjectName("centralwidget");
-        formLayout = new QFormLayout(centralwidget);
-        formLayout->setObjectName("formLayout");
-        priorityComboBox = new QComboBox(centralwidget);
-        priorityComboBox->addItem(QString());
-        priorityComboBox->addItem(QString());
-        priorityComboBox->addItem(QString());
-        priorityComboBox->addItem(QString());
-        priorityComboBox->addItem(QString());
-        priorityComboBox->addItem(QString());
-        priorityComboBox->addItem(QString());
-        priorityComboBox->addItem(QString());
-        priorityComboBox->addItem(QString());
-        priorityComboBox->setObjectName("priorityComboBox");
-
-        formLayout->setWidget(1, QFormLayout::LabelRole, priorityComboBox);
-
         addButton = new QPushButton(centralwidget);
         addButton->setObjectName("addButton");
+        addButton->setGeometry(QRect(250, 20, 55, 32));
         addButton->setCheckable(false);
-
-        formLayout->setWidget(1, QFormLayout::FieldRole, addButton);
-
-        textEdit = new QTextEdit(centralwidget);
-        textEdit->setObjectName("textEdit");
-
-        formLayout->setWidget(2, QFormLayout::SpanningRole, textEdit);
-
         sendButton = new QPushButton(centralwidget);
         sendButton->setObjectName("sendButton");
+        sendButton->setGeometry(QRect(320, 20, 61, 32));
         sendButton->setCheckable(false);
-
-        formLayout->setWidget(3, QFormLayout::SpanningRole, sendButton);
-
         configComboBox = new QComboBox(centralwidget);
         configComboBox->addItem(QString());
         configComboBox->addItem(QString());
@@ -93,15 +80,43 @@ public:
         configComboBox->addItem(QString());
         configComboBox->addItem(QString());
         configComboBox->setObjectName("configComboBox");
+        configComboBox->setGeometry(QRect(20, 20, 131, 32));
         configComboBox->setBaseSize(QSize(0, 0));
         configComboBox->setEditable(false);
-
-        formLayout->setWidget(0, QFormLayout::SpanningRole, configComboBox);
-
+        textEdit_2 = new QTextEdit(centralwidget);
+        textEdit_2->setObjectName("textEdit_2");
+        textEdit_2->setGeometry(QRect(10, 80, 301, 351));
+        textEdit_3 = new QTextEdit(centralwidget);
+        textEdit_3->setObjectName("textEdit_3");
+        textEdit_3->setGeometry(QRect(380, 80, 301, 351));
+        textEdit = new QTextEdit(centralwidget);
+        textEdit->setObjectName("textEdit");
+        textEdit->setGeometry(QRect(10, 450, 671, 171));
+        priorityComboBox = new QComboBox(centralwidget);
+        priorityComboBox->addItem(QString());
+        priorityComboBox->addItem(QString());
+        priorityComboBox->addItem(QString());
+        priorityComboBox->addItem(QString());
+        priorityComboBox->addItem(QString());
+        priorityComboBox->addItem(QString());
+        priorityComboBox->addItem(QString());
+        priorityComboBox->addItem(QString());
+        priorityComboBox->addItem(QString());
+        priorityComboBox->setObjectName("priorityComboBox");
+        priorityComboBox->setGeometry(QRect(160, 20, 77, 32));
+        label = new QLabel(centralwidget);
+        label->setObjectName("label");
+        label->setGeometry(QRect(430, 20, 31, 16));
+        label_2 = new QLabel(centralwidget);
+        label_2->setObjectName("label_2");
+        label_2->setGeometry(QRect(550, 20, 58, 16));
+        busyRadioButton = new QRadioButton(centralwidget);
+        busyRadioButton->setObjectName("busyRadioButton");
+        busyRadioButton->setGeometry(QRect(460, 50, 99, 20));
         MainWindow->setCentralWidget(centralwidget);
         menubar = new QMenuBar(MainWindow);
         menubar->setObjectName("menubar");
-        menubar->setGeometry(QRect(0, 0, 444, 22));
+        menubar->setGeometry(QRect(0, 0, 692, 24));
         MainWindow->setMenuBar(menubar);
         statusbar = new QStatusBar(MainWindow);
         statusbar->setObjectName("statusbar");
@@ -115,16 +130,7 @@ public:
     void retranslateUi(QMainWindow *MainWindow)
     {
         MainWindow->setWindowTitle(QCoreApplication::translate("MainWindow", "MainWindow", nullptr));
-        priorityComboBox->setItemText(0, QCoreApplication::translate("MainWindow", "1", nullptr));
-        priorityComboBox->setItemText(1, QCoreApplication::translate("MainWindow", "2", nullptr));
-        priorityComboBox->setItemText(2, QCoreApplication::translate("MainWindow", "3", nullptr));
-        priorityComboBox->setItemText(3, QCoreApplication::translate("MainWindow", "4", nullptr));
-        priorityComboBox->setItemText(4, QCoreApplication::translate("MainWindow", "5", nullptr));
-        priorityComboBox->setItemText(5, QCoreApplication::translate("MainWindow", "6", nullptr));
-        priorityComboBox->setItemText(6, QCoreApplication::translate("MainWindow", "7", nullptr));
-        priorityComboBox->setItemText(7, QCoreApplication::translate("MainWindow", "8", nullptr));
-        priorityComboBox->setItemText(8, QCoreApplication::translate("MainWindow", "\320\235\320\276\320\262\321\213\320\271 \321\215\320\273\320\265\320\274\320\265\320\275\321\202", nullptr));
-
+        mainServer->setText(QString());
         addButton->setText(QCoreApplication::translate("MainWindow", "Add", nullptr));
         sendButton->setText(QCoreApplication::translate("MainWindow", "Send", nullptr));
         configComboBox->setItemText(0, QCoreApplication::translate("MainWindow", "\320\276\320\264\320\275\320\260 \321\201\321\202\321\200\320\276\320\272\320\260", nullptr));
@@ -145,6 +151,19 @@ public:
         configComboBox->setItemText(15, QCoreApplication::translate("MainWindow", "8\321\2058", nullptr));
 
         configComboBox->setCurrentText(QCoreApplication::translate("MainWindow", "\320\276\320\264\320\275\320\260 \321\201\321\202\321\200\320\276\320\272\320\260", nullptr));
+        priorityComboBox->setItemText(0, QCoreApplication::translate("MainWindow", "1", nullptr));
+        priorityComboBox->setItemText(1, QCoreApplication::translate("MainWindow", "2", nullptr));
+        priorityComboBox->setItemText(2, QCoreApplication::translate("MainWindow", "3", nullptr));
+        priorityComboBox->setItemText(3, QCoreApplication::translate("MainWindow", "4", nullptr));
+        priorityComboBox->setItemText(4, QCoreApplication::translate("MainWindow", "5", nullptr));
+        priorityComboBox->setItemText(5, QCoreApplication::translate("MainWindow", "6", nullptr));
+        priorityComboBox->setItemText(6, QCoreApplication::translate("MainWindow", "7", nullptr));
+        priorityComboBox->setItemText(7, QCoreApplication::translate("MainWindow", "8", nullptr));
+        priorityComboBox->setItemText(8, QCoreApplication::translate("MainWindow", "\320\235\320\276\320\262\321\213\320\271 \321\215\320\273\320\265\320\274\320\265\320\275\321\202", nullptr));
+
+        label->setText(QCoreApplication::translate("MainWindow", "Time", nullptr));
+        label_2->setText(QCoreApplication::translate("MainWindow", "Main", nullptr));
+        busyRadioButton->setText(QCoreApplication::translate("MainWindow", "Imitation", nullptr));
     } // retranslateUi
 
 };
