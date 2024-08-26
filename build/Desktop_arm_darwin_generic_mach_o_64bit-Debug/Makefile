@@ -1196,12 +1196,12 @@ moc_mainwindow.cpp: ../../mainwindow.h \
 		/opt/homebrew/lib/QtWidgets.framework/Headers/qmainwindow.h \
 		/opt/homebrew/lib/QtNetwork.framework/Headers/QTcpSocket \
 		/opt/homebrew/lib/QtNetwork.framework/Headers/qtcpsocket.h \
+		/opt/homebrew/lib/QtWidgets.framework/Headers/QLabel \
+		/opt/homebrew/lib/QtWidgets.framework/Headers/qlabel.h \
 		/opt/homebrew/lib/QtCore.framework/Headers/QTimer \
 		/opt/homebrew/lib/QtCore.framework/Headers/qtimer.h \
 		/opt/homebrew/lib/QtWidgets.framework/Headers/QRadioButton \
 		/opt/homebrew/lib/QtWidgets.framework/Headers/qradiobutton.h \
-		/opt/homebrew/lib/QtWidgets.framework/Headers/QLabel \
-		/opt/homebrew/lib/QtWidgets.framework/Headers/qlabel.h \
 		moc_predefs.h \
 		/opt/homebrew/share/qt/libexec/moc
 	/opt/homebrew/share/qt/libexec/moc $(DEFINES) --include /Volumes/BMP/DBSP/Projects/client/build/Desktop_arm_darwin_generic_mach_o_64bit-Debug/moc_predefs.h -I/opt/homebrew/share/qt/mkspecs/macx-clang -I/Volumes/BMP/DBSP/Projects/client -I/opt/homebrew/lib/QtWidgets.framework/Headers -I/opt/homebrew/lib/QtGui.framework/Headers -I/opt/homebrew/lib/QtNetwork.framework/Headers -I/opt/homebrew/lib/QtCore.framework/Headers -I. -I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1 -I/Library/Developer/CommandLineTools/usr/lib/clang/14.0.3/include -I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include -I/Library/Developer/CommandLineTools/usr/include -F/opt/homebrew/lib ../../mainwindow.h -o moc_mainwindow.cpp
@@ -1234,12 +1234,12 @@ main.o: ../../main.cpp ../../mainwindow.h \
 		/opt/homebrew/lib/QtWidgets.framework/Headers/qmainwindow.h \
 		/opt/homebrew/lib/QtNetwork.framework/Headers/QTcpSocket \
 		/opt/homebrew/lib/QtNetwork.framework/Headers/qtcpsocket.h \
+		/opt/homebrew/lib/QtWidgets.framework/Headers/QLabel \
+		/opt/homebrew/lib/QtWidgets.framework/Headers/qlabel.h \
 		/opt/homebrew/lib/QtCore.framework/Headers/QTimer \
 		/opt/homebrew/lib/QtCore.framework/Headers/qtimer.h \
 		/opt/homebrew/lib/QtWidgets.framework/Headers/QRadioButton \
 		/opt/homebrew/lib/QtWidgets.framework/Headers/qradiobutton.h \
-		/opt/homebrew/lib/QtWidgets.framework/Headers/QLabel \
-		/opt/homebrew/lib/QtWidgets.framework/Headers/qlabel.h \
 		/opt/homebrew/lib/QtWidgets.framework/Headers/QApplication \
 		/opt/homebrew/lib/QtWidgets.framework/Headers/qapplication.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o ../../main.cpp
@@ -1249,12 +1249,12 @@ mainwindow.o: ../../mainwindow.cpp ../../mainwindow.h \
 		/opt/homebrew/lib/QtWidgets.framework/Headers/qmainwindow.h \
 		/opt/homebrew/lib/QtNetwork.framework/Headers/QTcpSocket \
 		/opt/homebrew/lib/QtNetwork.framework/Headers/qtcpsocket.h \
+		/opt/homebrew/lib/QtWidgets.framework/Headers/QLabel \
+		/opt/homebrew/lib/QtWidgets.framework/Headers/qlabel.h \
 		/opt/homebrew/lib/QtCore.framework/Headers/QTimer \
 		/opt/homebrew/lib/QtCore.framework/Headers/qtimer.h \
 		/opt/homebrew/lib/QtWidgets.framework/Headers/QRadioButton \
 		/opt/homebrew/lib/QtWidgets.framework/Headers/qradiobutton.h \
-		/opt/homebrew/lib/QtWidgets.framework/Headers/QLabel \
-		/opt/homebrew/lib/QtWidgets.framework/Headers/qlabel.h \
 		ui_mainwindow.h \
 		/opt/homebrew/lib/QtCore.framework/Headers/QDebug \
 		/opt/homebrew/lib/QtCore.framework/Headers/qdebug.h \

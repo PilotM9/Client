@@ -238,32 +238,19 @@
      <rect>
       <x>430</x>
       <y>20</y>
-      <width>31</width>
+      <width>71</width>
       <height>16</height>
      </rect>
     </property>
     <property name="text">
-     <string>Time</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_2">
-    <property name="geometry">
-     <rect>
-      <x>550</x>
-      <y>20</y>
-      <width>58</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Main</string>
+     <string>Connection</string>
     </property>
    </widget>
    <widget class="QRadioButton" name="busyRadioButton">
     <property name="geometry">
      <rect>
-      <x>460</x>
-      <y>50</y>
+      <x>420</x>
+      <y>60</y>
       <width>99</width>
       <height>20</height>
      </rect>
@@ -289,7 +276,7 @@
     <iconset theme="applications-internet"/>
    </property>
    <property name="text">
-    <string> </string>
+    <string/>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>

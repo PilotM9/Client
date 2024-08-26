@@ -37,7 +37,6 @@ public:
     QTextEdit *textEdit;
     QComboBox *priorityComboBox;
     QLabel *label;
-    QLabel *label_2;
     QRadioButton *busyRadioButton;
     QMenuBar *menubar;
     QStatusBar *statusbar;
@@ -106,13 +105,10 @@ public:
         priorityComboBox->setGeometry(QRect(160, 20, 77, 32));
         label = new QLabel(centralwidget);
         label->setObjectName("label");
-        label->setGeometry(QRect(430, 20, 31, 16));
-        label_2 = new QLabel(centralwidget);
-        label_2->setObjectName("label_2");
-        label_2->setGeometry(QRect(550, 20, 58, 16));
+        label->setGeometry(QRect(430, 20, 71, 16));
         busyRadioButton = new QRadioButton(centralwidget);
         busyRadioButton->setObjectName("busyRadioButton");
-        busyRadioButton->setGeometry(QRect(460, 50, 99, 20));
+        busyRadioButton->setGeometry(QRect(420, 60, 99, 20));
         MainWindow->setCentralWidget(centralwidget);
         menubar = new QMenuBar(MainWindow);
         menubar->setObjectName("menubar");
@@ -161,8 +157,7 @@ public:
         priorityComboBox->setItemText(7, QCoreApplication::translate("MainWindow", "8", nullptr));
         priorityComboBox->setItemText(8, QCoreApplication::translate("MainWindow", "\320\235\320\276\320\262\321\213\320\271 \321\215\320\273\320\265\320\274\320\265\320\275\321\202", nullptr));
 
-        label->setText(QCoreApplication::translate("MainWindow", "Time", nullptr));
-        label_2->setText(QCoreApplication::translate("MainWindow", "Main", nullptr));
+        label->setText(QCoreApplication::translate("MainWindow", "Connection", nullptr));
         busyRadioButton->setText(QCoreApplication::translate("MainWindow", "Imitation", nullptr));
     } // retranslateUi
 

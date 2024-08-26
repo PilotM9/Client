@@ -2,10 +2,12 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QTcpSocket>
+#include <QUdpSocket>
 #include <QLabel>
 #include <QTimer>
 #include <QRadioButton>
+#include <QPushButton>
+#include <QLineEdit>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -16,39 +18,31 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr);
+    explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
 private slots:
     void on_addButton_clicked();
     void on_sendButton_clicked();
     void on_readyRead();
-    void on_timeOut();
+    void updateConnectionStatus();
     void on_busyRadioButton_toggled(bool checked);
-
-    void onServerConnected();
-    void onServerDisconnected();
-    void onServerError(QAbstractSocket::SocketError socketError);
-
-    void onTimeServerConnected();
-    void onTimeServerDisconnected();
-    void onTimeServerError(QAbstractSocket::SocketError socketError);
+    void on_pushButton_clicked();  // Новый слот для обработки нажатия кнопки
 
 private:
     void setupConnections();
-    void connectToServers();
-    void sendStartRequest();
-    void sendRequest(const QString &request);
-    void updateConnectionStatus();
+    void sendRequest(const QString &id, const QString &configuration, const QString &priority, const QHostAddress &address, quint16 port);
+    void sendJsonRpcRequest(const QJsonObject &request, const QHostAddress &address, quint16 port);
+    void processResponse(const QJsonObject &response);
 
     Ui::MainWindow *ui;
-    QTcpSocket *socket;
-    QTcpSocket *timeSocket;
-    QLabel *statusTimeServer;
-    QLabel *statusMainServer;
+    QUdpSocket *socket;
+    QLabel *statusServer;
     QTimer *statusTimer;
     QRadioButton *busyRadioButton;
-    QStringList requests; // Хранение очереди заявок
+    QPushButton *pushButton;  // Новый объект для кнопки
+    QLineEdit *textEdit_4;    // Новый объект для текстового поля
+    QList<QJsonObject> requests;
 };
 
 #endif // MAINWINDOW_H

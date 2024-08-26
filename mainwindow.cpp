@@ -1,41 +1,43 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include <QJsonObject>
+#include <QJsonDocument>
+#include <QJsonArray>
 #include <QDebug>
 #include <QDateTime>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
-    , timeSocket(new QTcpSocket(this))
-    , socket(new QTcpSocket(this))
-    , statusTimeServer(new QLabel(this))
-    , statusMainServer(new QLabel(this))
+    , socket(new QUdpSocket(this))
+    , statusServer(new QLabel(this))
     , statusTimer(new QTimer(this))
     , busyRadioButton(new QRadioButton("Imitation", this))
+    , pushButton(new QPushButton("Connect", this))
+    , textEdit_4(new QLineEdit(this))
 {
     ui->setupUi(this);
 
-    // Настройка соединений и подключение
-    setupConnections();
-    connectToServers();
+    statusServer->setGeometry(440, 40, 20, 20);
+    statusServer->setStyleSheet("background-color: red;");
+    statusServer->setToolTip("Server Connection Status");
 
-    // Инициализация QLabel и установка начальных свойств
-    statusTimeServer->setGeometry(440, 40, 20, 20);
-    statusTimeServer->setStyleSheet("background-color: red;");
-    statusTimeServer->setToolTip("Time Server Connection Status");
-
-    statusMainServer->setGeometry(560, 40, 20, 20);
-    statusMainServer->setStyleSheet("background-color: red;");
-    statusMainServer->setToolTip("Main Server Connection Status");
-
-    // Настройка таймера для обновления состояния
     statusTimer->setInterval(500); // Обновление каждые 500 миллисекунд
     connect(statusTimer, &QTimer::timeout, this, &MainWindow::updateConnectionStatus);
     statusTimer->start();
 
-    // Настройка радиокнопки
     busyRadioButton->setGeometry(440, 80, 100, 20);
     connect(busyRadioButton, &QRadioButton::toggled, this, &MainWindow::on_busyRadioButton_toggled);
+
+    pushButton->setGeometry(440, 120, 100, 30);
+    connect(pushButton, &QPushButton::clicked, this, &MainWindow::on_pushButton_clicked);
+
+    textEdit_4->setGeometry(440, 160, 100, 30);
+
+    socket->bind(QHostAddress::LocalHost, 1234);
+
+    // Настройка соединения сокета
+    setupConnections();
 }
 
 MainWindow::~MainWindow()
@@ -45,26 +47,50 @@ MainWindow::~MainWindow()
 
 void MainWindow::setupConnections()
 {
-    connect(socket, &QTcpSocket::readyRead, this, &MainWindow::on_readyRead);
-    connect(socket, &QTcpSocket::errorOccurred, this, &MainWindow::onServerError);
-    connect(socket, &QTcpSocket::connected, this, &MainWindow::onServerConnected);
-    connect(socket, &QTcpSocket::disconnected, this, &MainWindow::onServerDisconnected);
-
-    connect(timeSocket, &QTcpSocket::readyRead, this, &MainWindow::on_timeOut);
-    connect(timeSocket, &QTcpSocket::errorOccurred, this, &MainWindow::onTimeServerError);
-    connect(timeSocket, &QTcpSocket::connected, this, &MainWindow::onTimeServerConnected);
-    connect(timeSocket, &QTcpSocket::disconnected, this, &MainWindow::onTimeServerDisconnected);
+    connect(socket, &QUdpSocket::readyRead, this, &MainWindow::on_readyRead);
 }
 
-void MainWindow::connectToServers()
+void MainWindow::sendRequest(const QString &id, const QString &configuration, const QString &priority, const QHostAddress &address, quint16 port)
 {
-    if (socket->state() != QTcpSocket::ConnectedState) {
-        socket->connectToHost("localhost", 1234); // Основной сервер
+    QJsonObject jsonParams;
+    jsonParams["id"] = id;
+    jsonParams["configuration"] = configuration;
+    jsonParams["priority"] = priority;
+
+    QJsonObject jsonRequest;
+    jsonRequest["jsonrpc"] = "2.0";
+    jsonRequest["method"] = "processRequest"; // Убедитесь, что метод правильно указан
+    jsonRequest["params"] = jsonParams;
+    jsonRequest["id"] = id.toInt(); // Используем ID как числовой идентификатор
+
+    sendJsonRpcRequest(jsonRequest, address, port);
+}
+
+void MainWindow::sendJsonRpcRequest(const QJsonObject &request, const QHostAddress &address, quint16 port)
+{
+    QJsonDocument jsonDoc(request);
+    QByteArray datagram = jsonDoc.toJson();
+
+    QString jsonString = jsonDoc.toJson(QJsonDocument::Indented);  // Преобразуем JSON в отформатированную строку
+    qDebug() << "Request JSON:" << jsonString;  // Выводим отформатированный JSON
+
+    // Отправляем датаграмму
+    socket->writeDatagram(datagram, address, port);
+    ui->textEdit->append("Sent request: " + QString(request["id"].toString()));
+}
+
+void MainWindow::processResponse(const QJsonObject &response)
+{
+    QString result = response["result"].toString();
+    ui->textEdit->append("Server response: " + result);
+
+    if (result.contains("Accepted")) {
+        ui->textEdit_3->setTextColor(Qt::green);
+    } else {
+        ui->textEdit_3->setTextColor(Qt::red);
     }
 
-    if (timeSocket->state() != QTcpSocket::ConnectedState) {
-        timeSocket->connectToHost("localhost", 1235); // Сервер времени
-    }
+    ui->textEdit_3->append(result);
 }
 
 void MainWindow::on_addButton_clicked()
@@ -72,10 +98,15 @@ void MainWindow::on_addButton_clicked()
     QString configuration = ui->configComboBox->currentText();
     QString priority = ui->priorityComboBox->currentText();
     QString id = QString::number(QDateTime::currentMSecsSinceEpoch());
-    QString request = QString("%1;%2;%3").arg(id).arg(configuration).arg(priority);
-    ui->textEdit->append("ID: " + request);
-    ui->textEdit_2->append("Added request: " + request);
+
+    QJsonObject request;
+    request["id"] = id;
+    request["configuration"] = configuration;
+    request["priority"] = priority;
+
     requests.append(request);
+    ui->textEdit->append("ID: " + id);
+    ui->textEdit_2->append("Added request: " + id);
 }
 
 void MainWindow::on_sendButton_clicked()
@@ -85,122 +116,90 @@ void MainWindow::on_sendButton_clicked()
         return;
     }
 
-    sendStartRequest();
-}
+    QHostAddress serverAddress("localhost");
+    quint16 serverPort = 1234;
 
-void MainWindow::sendStartRequest()
-{
-    if (timeSocket->state() == QTcpSocket::ConnectedState) {
-        timeSocket->write("START");
-        timeSocket->flush();
-        ui->textEdit->append("Sent START request to time server");
-    } else {
-        ui->textEdit->append("Error: Not connected to time server");
-    }
-}
+    QJsonObject startRequest;
+    startRequest["jsonrpc"] = "2.0";
+    startRequest["method"] = "startProcessing";
+    startRequest["id"] = 1; // Уникальный ID для команды START
+    sendJsonRpcRequest(startRequest, serverAddress, serverPort);
 
-void MainWindow::sendRequest(const QString &request)
-{
-    if (socket->state() == QTcpSocket::ConnectedState) {
-        socket->write(request.toUtf8());
-        socket->flush();
-        ui->textEdit->append("Sent request: " + request);
-    } else {
-        ui->textEdit->append("Error: Not connected to server");
+    // Отправляем все запросы
+    for (const QJsonObject &request : requests) {
+        QJsonObject jsonRequest;
+        jsonRequest["jsonrpc"] = "2.0";
+        jsonRequest["method"] = "processRequest"; // Убедитесь, что метод правильно указан
+        jsonRequest["params"] = request; // Включаем тело запроса как параметры
+        jsonRequest["id"] = request["id"].toString(); // Используем ID как строковый идентификатор
+
+        sendJsonRpcRequest(jsonRequest, serverAddress, serverPort);
     }
+    requests.clear();
 }
 
 void MainWindow::on_readyRead()
 {
-    QByteArray response = socket->readAll();
-    ui->textEdit->append("Server response: " + QString(response));
-    if (response.contains("Accepted")) {
-        ui->textEdit_3->setTextColor(Qt::green);
-    } else {
-        ui->textEdit_3->setTextColor(Qt::red);
-    }
-    ui->textEdit_3->append(QString(response));
-}
+    while (socket->hasPendingDatagrams()) {
+        QByteArray datagram;
+        datagram.resize(socket->pendingDatagramSize());
+        QHostAddress senderAddress;
+        quint16 senderPort;
 
-void MainWindow::on_timeOut()
-{
-    QByteArray response = timeSocket->readAll();
-    qDebug() << "Time server response:" << response;
-    if (response == "TICK") {
-        if (!requests.isEmpty()) {
-            sendRequest(requests.takeFirst());
-        } else {
-            timeSocket->write("NO_MORE_REQUESTS");
-            timeSocket->flush();
-            ui->textEdit->append("No more requests, sent NO_MORE_REQUESTS to time server");
+        socket->readDatagram(datagram.data(), datagram.size(), &senderAddress, &senderPort);
+
+        QJsonDocument jsonDoc = QJsonDocument::fromJson(datagram);
+        if (jsonDoc.isNull() || !jsonDoc.isObject()) {
+            ui->textEdit->append("Received invalid JSON");
+            return;
         }
+
+        QJsonObject jsonResponse = jsonDoc.object();
+        processResponse(jsonResponse);
     }
 }
 
 void MainWindow::updateConnectionStatus()
 {
-    if (timeSocket->state() == QTcpSocket::ConnectedState) {
-        statusTimeServer->setStyleSheet("background-color: green;");
-    } else {
-        statusTimeServer->setStyleSheet("background-color: red;");
-    }
-
-    if (socket->state() == QTcpSocket::ConnectedState) {
-        statusMainServer->setStyleSheet("background-color: green;");
-    } else {
-        statusMainServer->setStyleSheet("background-color: red;");
-    }
+    statusServer->setStyleSheet("background-color: green;");
 }
 
 void MainWindow::on_busyRadioButton_toggled(bool checked)
 {
-    if (socket->state() == QTcpSocket::ConnectedState) {
-        if (checked) {
-            socket->write("BUSY");
-        } else {
-            socket->write("AVAILABLE");
-        }
-        socket->flush();
-        ui->textEdit->append(checked ? "Server is now busy" : "Server is now available");
+    QHostAddress serverAddress("localhost");
+    quint16 serverPort = 1234;
+
+    QJsonObject busyStatus;
+    busyStatus["jsonrpc"] = "2.0";
+    busyStatus["method"] = checked ? "setBusy" : "setAvailable";
+    busyStatus["id"] = 1; // Уникальный ID для команды занятости
+
+    sendJsonRpcRequest(busyStatus, serverAddress, serverPort);
+    qDebug() << "Sent" << (checked ? "BUSY" : "AVAILABLE") << "to server";
+}
+
+void MainWindow::on_pushButton_clicked()
+{
+    bool ok;
+    QString portText = textEdit_4->text();
+    quint16 port = portText.toUInt(&ok);
+
+    qDebug() << "Port text:" << portText;
+
+    if (!ok || port < 1 || port > 65535) {
+        ui->textEdit->append("Invalid port number. Please enter a number between 1 and 65535.");
+        statusServer->setStyleSheet("background-color: red;");
+        return;
     }
-}
 
-void MainWindow::onServerConnected()
-{
-    ui->textEdit->append("Connected to main server");
-}
-
-void MainWindow::onServerDisconnected()
-{
-    ui->textEdit->append("Disconnected from main server");
-}
-
-void MainWindow::onServerError(QAbstractSocket::SocketError socketError)
-{
-    Q_UNUSED(socketError);
-    ui->textEdit->append("Main server error: " + socket->errorString());
-    // Попытаться переподключиться, если сервер отключен
-    if (socket->state() != QTcpSocket::ConnectedState) {
-        connectToServers();
+    socket->abort();  // Закрываем старое соединение
+    if (!socket->bind(QHostAddress::LocalHost, port)) {
+        ui->textEdit->append("Failed to bind to port " + QString::number(port));
+        statusServer->setStyleSheet("background-color: red;");
+    } else {
+        ui->textEdit->append("Successfully bound to port " + QString::number(port));
+        statusServer->setStyleSheet("background-color: green;");
     }
+    textEdit_4->text()=0;
 }
 
-void MainWindow::onTimeServerConnected()
-{
-    ui->textEdit->append("Connected to time server");
-}
-
-void MainWindow::onTimeServerDisconnected()
-{
-    ui->textEdit->append("Disconnected from time server");
-}
-
-void MainWindow::onTimeServerError(QAbstractSocket::SocketError socketError)
-{
-    Q_UNUSED(socketError);
-    ui->textEdit->append("Time server error: " + timeSocket->errorString());
-    // Попытаться переподключиться, если сервер времени отключен
-    if (timeSocket->state() != QTcpSocket::ConnectedState) {
-        connectToServers();
-    }
-}
