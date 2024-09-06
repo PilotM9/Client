@@ -2,9 +2,9 @@
 #include "ui_mainwindow.h"
 #include <QJsonObject>
 #include <QJsonDocument>
-#include <QJsonArray>
 #include <QDebug>
 #include <QDateTime>
+#include <QTimer>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -12,12 +12,14 @@ MainWindow::MainWindow(QWidget *parent)
     , socket(new QUdpSocket(this))
     , statusServer(new QLabel(this))
     , statusTimer(new QTimer(this))
-    , busyRadioButton(new QRadioButton("Imitation", this))
+    // , busyRadioButton(new QRadioButton("Imitation", this))
     , pushButton(new QPushButton("Connect", this))
     , textEdit_4(new QLineEdit(this))
+    , timeoutTimer(new QTimer(this))
 {
     ui->setupUi(this);
 
+    // Инициализация элементов интерфейса
     statusServer->setGeometry(440, 40, 20, 20);
     statusServer->setStyleSheet("background-color: red;");
     statusServer->setToolTip("Server Connection Status");
@@ -26,18 +28,22 @@ MainWindow::MainWindow(QWidget *parent)
     connect(statusTimer, &QTimer::timeout, this, &MainWindow::updateConnectionStatus);
     statusTimer->start();
 
-    busyRadioButton->setGeometry(440, 80, 100, 20);
-    connect(busyRadioButton, &QRadioButton::toggled, this, &MainWindow::on_busyRadioButton_toggled);
+    // busyRadioButton->setGeometry(440, 80, 100, 20);
+    // connect(busyRadioButton, &QRadioButton::toggled, this, &MainWindow::on_busyRadioButton_toggled);
 
     pushButton->setGeometry(440, 120, 100, 30);
     connect(pushButton, &QPushButton::clicked, this, &MainWindow::on_pushButton_clicked);
 
     textEdit_4->setGeometry(440, 160, 100, 30);
 
-    socket->bind(QHostAddress::LocalHost, 1234);
+    socket->bind(QHostAddress::LocalHost, 12345);
 
-    // Настройка соединения сокета
+    // Настройка соединений
     setupConnections();
+
+    // Таймер для отслеживания времени ожидания ответа от сервера
+    timeoutTimer->setInterval(3000); // Тайм-аут 3 секунды
+    connect(timeoutTimer, &QTimer::timeout, this, &MainWindow::onResponseTimeout);
 }
 
 MainWindow::~MainWindow()
@@ -48,12 +54,12 @@ MainWindow::~MainWindow()
 void MainWindow::setupConnections()
 {
     connect(socket, &QUdpSocket::readyRead, this, &MainWindow::on_readyRead);
+    connect(socket, &QUdpSocket::errorOccurred, this, &MainWindow::onSocketError);
 }
 
-void MainWindow::sendRequest(const QString &id, const QString &configuration, const QString &priority, const QHostAddress &address, quint16 port)
+void MainWindow::sendRequest(const QString &configuration, const QString &priority, const QHostAddress &address, quint16 port)
 {
     QJsonObject jsonParams;
-    jsonParams["id"] = id;
     jsonParams["configuration"] = configuration;
     jsonParams["priority"] = priority;
 
@@ -61,7 +67,6 @@ void MainWindow::sendRequest(const QString &id, const QString &configuration, co
     jsonRequest["jsonrpc"] = "2.0";
     jsonRequest["method"] = "processRequest"; // Убедитесь, что метод правильно указан
     jsonRequest["params"] = jsonParams;
-    jsonRequest["id"] = id.toInt(); // Используем ID как числовой идентификатор
 
     sendJsonRpcRequest(jsonRequest, address, port);
 }
@@ -74,14 +79,22 @@ void MainWindow::sendJsonRpcRequest(const QJsonObject &request, const QHostAddre
     QString jsonString = jsonDoc.toJson(QJsonDocument::Indented);  // Преобразуем JSON в отформатированную строку
     qDebug() << "Request JSON:" << jsonString;  // Выводим отформатированный JSON
 
-    // Отправляем датаграмму
-    socket->writeDatagram(datagram, address, port);
-    ui->textEdit->append("Sent request: " + QString(request["id"].toString()));
+    qint64 bytesSent = socket->writeDatagram(datagram, address, port);
+    if (bytesSent == -1) {
+        ui->textEdit->append("Error sending request: " + socket->errorString());
+        return;
+    }
+    ui->textEdit->append("Sent request");
+
+    // Запуск таймера ожидания ответа
+    timeoutTimer->start();
 }
 
 void MainWindow::processResponse(const QJsonObject &response)
 {
     QString result = response["result"].toString();
+    QString id = response["id"].toString(); // Используем ID из ответа
+
     ui->textEdit->append("Server response: " + result);
 
     if (result.contains("Accepted")) {
@@ -99,14 +112,16 @@ void MainWindow::on_addButton_clicked()
     QString priority = ui->priorityComboBox->currentText();
     QString id = QString::number(QDateTime::currentMSecsSinceEpoch());
 
+    // Создаем объект заявки
     QJsonObject request;
-    request["id"] = id;
     request["configuration"] = configuration;
     request["priority"] = priority;
 
+    // Добавляем заявку в список
     requests.append(request);
-    ui->textEdit->append("ID: " + id);
-    ui->textEdit_2->append("Added request: " + id);
+
+    // Обновляем текстовые поля
+    ui->textEdit_2->append("Added request: Configuration: " + configuration + ", Priority: " + priority);
 }
 
 void MainWindow::on_sendButton_clicked()
@@ -117,7 +132,7 @@ void MainWindow::on_sendButton_clicked()
     }
 
     QHostAddress serverAddress("localhost");
-    quint16 serverPort = 1234;
+    quint16 serverPort = 12345;
 
     QJsonObject startRequest;
     startRequest["jsonrpc"] = "2.0";
@@ -127,19 +142,16 @@ void MainWindow::on_sendButton_clicked()
 
     // Отправляем все запросы
     for (const QJsonObject &request : requests) {
-        QJsonObject jsonRequest;
-        jsonRequest["jsonrpc"] = "2.0";
-        jsonRequest["method"] = "processRequest"; // Убедитесь, что метод правильно указан
-        jsonRequest["params"] = request; // Включаем тело запроса как параметры
-        jsonRequest["id"] = request["id"].toString(); // Используем ID как строковый идентификатор
-
-        sendJsonRpcRequest(jsonRequest, serverAddress, serverPort);
+        sendRequest(request["configuration"].toString(), request["priority"].toString(), serverAddress, serverPort);
     }
     requests.clear();
 }
 
 void MainWindow::on_readyRead()
 {
+    // Останавливаем таймер, если получили ответ
+    timeoutTimer->stop();
+
     while (socket->hasPendingDatagrams()) {
         QByteArray datagram;
         datagram.resize(socket->pendingDatagramSize());
@@ -156,6 +168,12 @@ void MainWindow::on_readyRead()
 
         QJsonObject jsonResponse = jsonDoc.object();
         processResponse(jsonResponse);
+
+        // Получение и отображение текущего тика сервера
+        if (jsonResponse.contains("currentTick")) {
+            QString currentTick = jsonResponse["currentTick"].toString();
+            ui->textEdit->append("Current Tick: " + currentTick);
+        }
     }
 }
 
@@ -164,19 +182,19 @@ void MainWindow::updateConnectionStatus()
     statusServer->setStyleSheet("background-color: green;");
 }
 
-void MainWindow::on_busyRadioButton_toggled(bool checked)
-{
-    QHostAddress serverAddress("localhost");
-    quint16 serverPort = 1234;
+// void MainWindow::on_busyRadioButton_toggled(bool checked)
+// {
+//     QHostAddress serverAddress("localhost");
+//     quint16 serverPort = 12345;
 
-    QJsonObject busyStatus;
-    busyStatus["jsonrpc"] = "2.0";
-    busyStatus["method"] = checked ? "setBusy" : "setAvailable";
-    busyStatus["id"] = 1; // Уникальный ID для команды занятости
+//     QJsonObject busyStatus;
+//     busyStatus["jsonrpc"] = "2.0";
+//     busyStatus["method"] = checked ? "setBusy" : "setAvailable";
+//     busyStatus["id"] = 1; // Уникальный ID для команды занятости
 
-    sendJsonRpcRequest(busyStatus, serverAddress, serverPort);
-    qDebug() << "Sent" << (checked ? "BUSY" : "AVAILABLE") << "to server";
-}
+//     sendJsonRpcRequest(busyStatus, serverAddress, serverPort);
+//     qDebug() << "Sent" << (checked ? "BUSY" : "AVAILABLE") << "to server";
+// }
 
 void MainWindow::on_pushButton_clicked()
 {
@@ -200,6 +218,16 @@ void MainWindow::on_pushButton_clicked()
         ui->textEdit->append("Successfully bound to port " + QString::number(port));
         statusServer->setStyleSheet("background-color: green;");
     }
-    textEdit_4->text()=0;
+    textEdit_4->clear();
 }
 
+void MainWindow::onSocketError(QAbstractSocket::SocketError socketError)
+{
+    Q_UNUSED(socketError);
+    ui->textEdit->append("Socket error occurred: " + socket->errorString());
+}
+
+void MainWindow::onResponseTimeout()
+{
+    ui->textEdit->append("No response from server within the timeout period.");
+}

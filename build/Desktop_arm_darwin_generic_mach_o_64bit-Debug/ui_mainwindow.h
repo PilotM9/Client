@@ -17,7 +17,6 @@
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QPushButton>
-#include <QtWidgets/QRadioButton>
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QTextEdit>
 #include <QtWidgets/QWidget>
@@ -37,7 +36,6 @@ public:
     QTextEdit *textEdit;
     QComboBox *priorityComboBox;
     QLabel *label;
-    QRadioButton *busyRadioButton;
     QMenuBar *menubar;
     QStatusBar *statusbar;
 
@@ -106,9 +104,6 @@ public:
         label = new QLabel(centralwidget);
         label->setObjectName("label");
         label->setGeometry(QRect(430, 20, 71, 16));
-        busyRadioButton = new QRadioButton(centralwidget);
-        busyRadioButton->setObjectName("busyRadioButton");
-        busyRadioButton->setGeometry(QRect(420, 60, 99, 20));
         MainWindow->setCentralWidget(centralwidget);
         menubar = new QMenuBar(MainWindow);
         menubar->setObjectName("menubar");
@@ -158,7 +153,6 @@ public:
         priorityComboBox->setItemText(8, QCoreApplication::translate("MainWindow", "\320\235\320\276\320\262\321\213\320\271 \321\215\320\273\320\265\320\274\320\265\320\275\321\202", nullptr));
 
         label->setText(QCoreApplication::translate("MainWindow", "Connection", nullptr));
-        busyRadioButton->setText(QCoreApplication::translate("MainWindow", "Imitation", nullptr));
     } // retranslateUi
 
 };

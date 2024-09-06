@@ -8,6 +8,7 @@
 #include <QRadioButton>
 #include <QPushButton>
 #include <QLineEdit>
+#include <QJsonObject>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -26,12 +27,14 @@ private slots:
     void on_sendButton_clicked();
     void on_readyRead();
     void updateConnectionStatus();
-    void on_busyRadioButton_toggled(bool checked);
-    void on_pushButton_clicked();  // Новый слот для обработки нажатия кнопки
+    // void on_busyRadioButton_toggled(bool checked);
+    void on_pushButton_clicked();
+    void onSocketError(QAbstractSocket::SocketError socketError);  // Новый слот для обработки ошибок сокета
+    void onResponseTimeout();  // Новый слот для обработки тайм-аута ответа от сервера
 
 private:
     void setupConnections();
-    void sendRequest(const QString &id, const QString &configuration, const QString &priority, const QHostAddress &address, quint16 port);
+    void sendRequest(const QString &configuration, const QString &priority, const QHostAddress &address, quint16 port);
     void sendJsonRpcRequest(const QJsonObject &request, const QHostAddress &address, quint16 port);
     void processResponse(const QJsonObject &response);
 
@@ -39,9 +42,10 @@ private:
     QUdpSocket *socket;
     QLabel *statusServer;
     QTimer *statusTimer;
-    QRadioButton *busyRadioButton;
-    QPushButton *pushButton;  // Новый объект для кнопки
-    QLineEdit *textEdit_4;    // Новый объект для текстового поля
+    QTimer *timeoutTimer;  // Новый объект таймера для отслеживания времени ожидания ответа
+    // QRadioButton *busyRadioButton;
+    QPushButton *pushButton;
+    QLineEdit *textEdit_4;
     QList<QJsonObject> requests;
 };
 
