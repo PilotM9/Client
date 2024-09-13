@@ -12,7 +12,6 @@ MainWindow::MainWindow(QWidget *parent)
     , socket(new QUdpSocket(this))
     , statusServer(new QLabel(this))
     , statusTimer(new QTimer(this))
-    // , busyRadioButton(new QRadioButton("Imitation", this))
     , pushButton(new QPushButton("Connect", this))
     , textEdit_4(new QLineEdit(this))
     , timeoutTimer(new QTimer(this))
@@ -27,9 +26,6 @@ MainWindow::MainWindow(QWidget *parent)
     statusTimer->setInterval(500); // Обновление каждые 500 миллисекунд
     connect(statusTimer, &QTimer::timeout, this, &MainWindow::updateConnectionStatus);
     statusTimer->start();
-
-    // busyRadioButton->setGeometry(440, 80, 100, 20);
-    // connect(busyRadioButton, &QRadioButton::toggled, this, &MainWindow::on_busyRadioButton_toggled);
 
     pushButton->setGeometry(440, 120, 100, 30);
     connect(pushButton, &QPushButton::clicked, this, &MainWindow::on_pushButton_clicked);
@@ -65,7 +61,7 @@ void MainWindow::sendRequest(const QString &configuration, const QString &priori
 
     QJsonObject jsonRequest;
     jsonRequest["jsonrpc"] = "2.0";
-    jsonRequest["method"] = "processRequest"; // Убедитесь, что метод правильно указан
+    jsonRequest["method"] = "processRequest";
     jsonRequest["params"] = jsonParams;
 
     sendJsonRpcRequest(jsonRequest, address, port);
@@ -93,24 +89,31 @@ void MainWindow::sendJsonRpcRequest(const QJsonObject &request, const QHostAddre
 void MainWindow::processResponse(const QJsonObject &response)
 {
     QString result = response["result"].toString();
-    QString id = response["id"].toString(); // Используем ID из ответа
+    QString id = response["id"].toString();
+    QJsonObject requestBody = response["requestBody"].toObject();  // Извлекаем тело заявки из ответа
 
-    ui->textEdit->append("Server response: " + result);
+    // Извлекаем детали заявки для отображения
+    QString configuration = requestBody["configuration"].toString();
+    QString priority = requestBody["priority"].toString();
+    QString requestDetails = QString("Request ID: %1 - Configuration: %2, Priority: %3").arg(id, configuration, priority);
 
+    // Устанавливаем цвет текста в зависимости от результата
     if (result.contains("Accepted")) {
         ui->textEdit_3->setTextColor(Qt::green);
     } else {
         ui->textEdit_3->setTextColor(Qt::red);
     }
 
-    ui->textEdit_3->append(result);
+    // Отображаем результат и детали заявки в `textEdit_3`
+    ui->textEdit_3->append(requestDetails);
+    ui->textEdit_3->append("Server response: " + result);
 }
+
 
 void MainWindow::on_addButton_clicked()
 {
     QString configuration = ui->configComboBox->currentText();
     QString priority = ui->priorityComboBox->currentText();
-    QString id = QString::number(QDateTime::currentMSecsSinceEpoch());
 
     // Создаем объект заявки
     QJsonObject request;
@@ -134,17 +137,34 @@ void MainWindow::on_sendButton_clicked()
     QHostAddress serverAddress("localhost");
     quint16 serverPort = 12345;
 
+    // Отправляем команду startProcessing перед отправкой первой заявки
     QJsonObject startRequest;
     startRequest["jsonrpc"] = "2.0";
     startRequest["method"] = "startProcessing";
     startRequest["id"] = 1; // Уникальный ID для команды START
     sendJsonRpcRequest(startRequest, serverAddress, serverPort);
 
-    // Отправляем все запросы
-    for (const QJsonObject &request : requests) {
-        sendRequest(request["configuration"].toString(), request["priority"].toString(), serverAddress, serverPort);
-    }
+    // Копируем заявки в очередь для обработки по одной
+    requestsQueue = requests;
     requests.clear();
+
+    // Начинаем отправку первой заявки
+    sendNextRequest();
+}
+
+void MainWindow::sendNextRequest()
+{
+    if (requestsQueue.isEmpty()) {
+        ui->textEdit->append("All requests have been sent");
+        return;
+    }
+
+    QHostAddress serverAddress("localhost");
+    quint16 serverPort = 12345;
+
+    // Берем следующую заявку из очереди
+    QJsonObject request = requestsQueue.takeFirst();
+    sendRequest(request["configuration"].toString(), request["priority"].toString(), serverAddress, serverPort);
 }
 
 void MainWindow::on_readyRead()
@@ -174,6 +194,11 @@ void MainWindow::on_readyRead()
             QString currentTick = jsonResponse["currentTick"].toString();
             ui->textEdit->append("Current Tick: " + currentTick);
         }
+
+        // После обработки ответа отправляем следующую заявку, если они еще есть
+        if (!requestsQueue.isEmpty()) {
+            sendNextRequest();
+        }
     }
 }
 
@@ -181,20 +206,6 @@ void MainWindow::updateConnectionStatus()
 {
     statusServer->setStyleSheet("background-color: green;");
 }
-
-// void MainWindow::on_busyRadioButton_toggled(bool checked)
-// {
-//     QHostAddress serverAddress("localhost");
-//     quint16 serverPort = 12345;
-
-//     QJsonObject busyStatus;
-//     busyStatus["jsonrpc"] = "2.0";
-//     busyStatus["method"] = checked ? "setBusy" : "setAvailable";
-//     busyStatus["id"] = 1; // Уникальный ID для команды занятости
-
-//     sendJsonRpcRequest(busyStatus, serverAddress, serverPort);
-//     qDebug() << "Sent" << (checked ? "BUSY" : "AVAILABLE") << "to server";
-// }
 
 void MainWindow::on_pushButton_clicked()
 {
